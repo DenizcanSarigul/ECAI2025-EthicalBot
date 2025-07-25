@@ -3,13 +3,13 @@ from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 import os
-import google.generativeai as genai
+import google.genai as genai
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import re
 from langchain_openai import ChatOpenAI
 import openai
 from langchain_core.prompts import MessagesPlaceholder
- 
+import asyncio
 
 
 load_dotenv()
@@ -17,7 +17,7 @@ load_dotenv()
 # Configure Google API
 try:
     openai.api_key = os.environ["OPENAI_API_KEY"]
-    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+    genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
 except KeyError as e:
     print(f"Environment variable not found: {e}")
     exit(1)
@@ -58,6 +58,12 @@ app = Flask(__name__)
 
 @app.route("/generate", methods=["POST"])
 def generate_response():
+    
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
+    
     # Retrieve query_text from the POST request's JSON body
     data = request.json
     
